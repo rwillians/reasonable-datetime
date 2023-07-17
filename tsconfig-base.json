@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "types": ["bun"],
+    "rootDir": "src",
+    "declaration": true,
+    "declarationDir": "dist/types/",
+    "strict": true,
+    "noImplicitAny": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "reasonable-datetime",
+  "description": "Immutable distinct Date, Time and DateTime objects.",
+  "author": "Rafael Willians <me@rwillians.com>",
+  "keywords": ["date", "time", "datetime"],
+  "files": ["LICENSE", "dist/*"],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rwillians/exto.git"
+  },
+  "type": "module",
+  "module": "dist/esm/index.js",
+  "main": "dist/cjs/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun run build:cjs && bun run build:esm",
+    "build:cjs": "bun run --bun tsc --project tsconfig-cjs.json",
+    "build:esm": "bun run --bun tsc --project tsconfig-esm.json",
+    "test": "bun test",
+    "typecheck": "bun check"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
