@@ -32,11 +32,11 @@ npm install reasonable-datetime
 ```ts
 import * as r from 'reasonable-datetime';
 
-const due = r.Date.parse('2024-02-28').add(r.Duration.days(2));
+const due = r.Date.parse('2024-02-28').add(r.days(2));
 due.toISOString(); // => '2024-03-01'
 
 const meeting = r.DateTime.parse('2024-02-29T13:45-03:00');
-meeting.add(r.Duration.minutes(90)).toISOString(); // => '2024-02-29T15:15:00.000-03:00'
+meeting.add(r.minutes(90)).toISOString(); // => '2024-02-29T15:15:00.000-03:00'
 
 const lunch = r.Time.parse('12:00');
 lunch.diff(r.Time.parse('13:30')).toISOString(); // => 'PT1H30M'
@@ -44,10 +44,9 @@ lunch.diff(r.Time.parse('13:30')).toISOString(); // => 'PT1H30M'
 JSON.stringify({ due, meeting }); // => '{"due":"2024-03-01","meeting":"2024-02-29T13:45:00.000-03:00"}'
 ```
 
-> **Tip:** this library exports a class named `Date`, which shadows the native
-> `Date` wherever it is imported by name. A namespace import
-> (`import * as r from 'reasonable-datetime'`) or a renamed import
-> (`import { Date as CalendarDate } from 'reasonable-datetime'`) avoids that.
+> **Tip:** this library exports a class named `Date`, which would shadow the
+> native `Date` if imported by name. That is why every example here uses a
+> namespace import, `import * as r from 'reasonable-datetime'`.
 
 ## Common behavior
 
@@ -68,25 +67,60 @@ Every type follows the same rules:
 - **Comparison** returns `'lt'`, `'eq'` or `'gt'`.
 - **`diff` goes from `this` to `other`.** `a.diff(b)` is `b − a`, so
   `a.add(a.diff(b))` is always `b`.
-- **Collections.** Each type has static `sort`, `min` and `max`. `sort`
-  returns a new array (the input is left untouched); `min` and `max` throw a
-  `RangeError` on an empty array.
+- **Collections.** Each type has static `sort`, `min` and `max`, and `sort` is
+  also available as the `r.sort` helper. `sort` returns a new array (the input
+  is left untouched); `min` and `max` throw a `RangeError` on an empty array.
+- **Type guards.** Each type has a static `is(value)`, which narrows an
+  unknown value to that type.
 
 ```ts
 const dates = [r.Date.parse('2024-03-01'), r.Date.parse('2023-12-31')];
 
-r.Date.sort(dates).map(String); // => ['2023-12-31', '2024-03-01']
-r.Date.min(dates).toString();   // => '2023-12-31'
+r.sort(dates).map(String);    // => ['2023-12-31', '2024-03-01']
+r.Date.min(dates).toString(); // => '2023-12-31'
+
+r.Date.is(dates[0]); // => true
+r.Time.is(dates[0]); // => false
 ```
+
+## Helpers
+
+The most common static methods are also exported as plain functions, for
+shorter call sites:
+
+| helper              | same as                                                                        |
+| :------------------ | :----------------------------------------------------------------------------- |
+| `r.nowUTC()`        | `r.DateTime.nowUTC()`                                                          |
+| `r.todayUTC()`      | `r.Date.todayUTC()`                                                            |
+| `r.days(n)`         | `r.Duration.days(n)`                                                           |
+| `r.hours(n)`        | `r.Duration.hours(n)`                                                          |
+| `r.minutes(n)`      | `r.Duration.minutes(n)`                                                        |
+| `r.seconds(n)`      | `r.Duration.seconds(n)`                                                        |
+| `r.milliseconds(n)` | `r.Duration.milliseconds(n)`                                                   |
+| `r.sort(items)`     | `r.Date.sort(items)`, `r.Time.sort(items)`, … for whichever type `items` holds |
+| `r.compare(a, b)`   | `a.compare(b)`                                                                 |
+
+```ts
+import * as r from 'reasonable-datetime';
+
+r.Date.parse('2024-02-28').add(r.days(2)).toISOString(); // => '2024-03-01'
+
+r.sort([r.hours(3), r.minutes(90)]).map(String); // => ['PT1H30M', 'PT3H']
+r.compare(r.days(2), r.hours(36));               // => 'gt'
+```
+
+`sort` and `compare` work with any of the four types, but in TypeScript all
+values must be of the same type — mixing, say, a `Date` and a `Time` is a
+compile-time error, since they can't be meaningfully compared.
 
 ## `Date`
 
 A calendar date: a year, a month and a day. No time, no timezone.
 
 ```ts
-r.Date.parse('2024-02-29');                       // from an ISO date (YYYY-MM-DD)
-new r.Date({ year: 2024, month: 2, day: 29 });    // from its fields
-r.Date.todayUTC();                                // the current date in UTC
+r.Date.parse('2024-02-29');                    // from an ISO date (YYYY-MM-DD)
+new r.Date({ year: 2024, month: 2, day: 29 }); // from its fields
+r.todayUTC();                                  // the current date in UTC
 ```
 
 | field   | range     |
@@ -111,8 +145,8 @@ seconds or milliseconds throws a `RangeError`:
 ```ts
 const date = r.Date.parse('2024-01-01');
 
-date.add(r.Duration.hours(48)).toISOString(); // => '2024-01-03'
-date.add(r.Duration.hours(5));                // throws RangeError
+date.add(r.hours(48)).toISOString(); // => '2024-01-03'
+date.add(r.hours(5));                // throws RangeError
 
 r.Date.parse('2024-02-14').endOf('month').toISOString(); // => '2024-02-29'
 ```
@@ -122,10 +156,10 @@ r.Date.parse('2024-02-14').endOf('month').toISOString(); // => '2024-02-29'
 A wall-clock time, with millisecond precision. No date, no timezone.
 
 ```ts
-r.Time.parse('13:45');                            // HH:MM
-r.Time.parse('13:45:30');                         // HH:MM:SS
-r.Time.parse('13:45:30.5');                       // HH:MM:SS.s, up to 3 fraction digits
-new r.Time({ hour: 13, minute: 45 });             // second and millisecond default to 0
+r.Time.parse('13:45');                // HH:MM
+r.Time.parse('13:45:30');             // HH:MM:SS
+r.Time.parse('13:45:30.5');           // HH:MM:SS.s, up to 3 fraction digits
+new r.Time({ hour: 13, minute: 45 }); // second and millisecond default to 0
 ```
 
 | field         | range    |
@@ -146,8 +180,8 @@ new r.Time({ hour: 13, minute: 45 });             // second and millisecond defa
 Times wrap around midnight, so adding whole days leaves a time unchanged:
 
 ```ts
-r.Time.parse('23:00').add(r.Duration.hours(2)).toISOString(); // => '01:00:00.000'
-r.Time.parse('10:00').add(r.Duration.days(3)).toISOString();  // => '10:00:00.000'
+r.Time.parse('23:00').add(r.hours(2)).toISOString(); // => '01:00:00.000'
+r.Time.parse('10:00').add(r.days(3)).toISOString();  // => '10:00:00.000'
 ```
 
 ## `DateTime`
@@ -156,14 +190,14 @@ An instant in time, together with the fixed UTC offset it is viewed from. The
 date and time fields are the wall-clock reading at that offset.
 
 ```ts
-r.DateTime.parse('2024-02-29T13:45:30.5-03:00');  // from an ISO date-time
-r.DateTime.parse(1709225130500);                  // from milliseconds since the Unix epoch, in UTC
-new r.DateTime({                                  // from its fields
+r.DateTime.parse('2024-02-29T13:45:30.5-03:00'); // from an ISO date-time
+r.DateTime.parse(1709225130500);                 // from milliseconds since the Unix epoch, in UTC
+new r.DateTime({                                 // from its fields
   year: 2024, month: 2, day: 29,
-  hour: 13, minute: 45,                           // time fields default to 0
-  tzoffset: -180,                                 // defaults to 0 (UTC)
+  hour: 13, minute: 45,                          // time fields default to 0
+  tzoffset: -180,                                // defaults to 0 (UTC)
 });
-r.DateTime.nowUTC();                              // the current instant, in UTC
+r.nowUTC();                                      // the current instant, in UTC
 ```
 
 ISO strings must include an offset, either `Z` or `±HH:MM`. A date-time without
@@ -205,7 +239,7 @@ Two date-times at the same instant are equal, whatever their offsets:
 const a = r.DateTime.parse('2024-01-01T12:00+02:00');
 const b = r.DateTime.parse('2024-01-01T10:00Z');
 
-a.compare(b);           // => 'eq'
+r.compare(a, b);         // => 'eq'
 a.diff(b).toISOString(); // => 'PT0S'
 ```
 
@@ -226,12 +260,12 @@ An exact length of time, positive or negative. Durations have no months or
 years, since those have no fixed length, so any two durations can be compared.
 
 ```ts
-new r.Duration({ days: 1, hours: 12 });           // any combination of fields, all optional
-r.Duration.days(1);
-r.Duration.hours(1.5);                            // fractions are fine: 1 hour and 30 minutes
-r.Duration.minutes(5);
-r.Duration.seconds(30);
-r.Duration.milliseconds(250);
+new r.Duration({ days: 1, hours: 12 }); // any combination of fields, all optional
+r.days(1);
+r.hours(1.5);                           // fractions are fine: 1 hour and 30 minutes
+r.minutes(5);
+r.seconds(30);
+r.milliseconds(250);
 ```
 
 Fields are normalized, so every duration has a single representation:
@@ -264,10 +298,10 @@ values (`NaN`, `Infinity`) throw a `RangeError`.
 | `toISOString()`  | `string`               | an ISO 8601 duration, e.g. `'P1DT12H'` |
 
 ```ts
-r.Duration.hours(36).compare(r.Duration.days(2)); // => 'lt'
+r.compare(r.hours(36), r.days(2)); // => 'lt'
 
-new r.Duration({}).toISOString();                 // => 'PT0S'
-r.Duration.milliseconds(-1250).toISOString();     // => '-PT1.25S'
+new r.Duration({}).toISOString();    // => 'PT0S'
+r.milliseconds(-1250).toISOString(); // => '-PT1.25S'
 ```
 
 ## License
