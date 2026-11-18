@@ -1,4 +1,4 @@
-import { compareNumbers, maxOf, minOf, pad, sortAll } from './utils';
+import { compareNumbers, maxOf, minOf, pad, sortAll } from './utils.js';
 
 export class Duration {
   public readonly days: number;

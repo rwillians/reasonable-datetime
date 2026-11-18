@@ -1,8 +1,8 @@
-import { Date } from './date';
-import { Duration } from './duration';
-import { NativeDate } from './native';
-import { Time } from './time';
-import { assertInteger, compareNumbers, daysInMonth, fromEpoch, maxOf, minOf, pad, sortAll, toEpoch } from './utils';
+import { Date } from './date.js';
+import { Duration } from './duration.js';
+import { NativeDate } from './native.js';
+import { Time } from './time.js';
+import { assertInteger, compareNumbers, daysInMonth, fromEpoch, maxOf, minOf, pad, sortAll, toEpoch } from './utils.js';
 
 type Components = { year: number; month: number, day: number, hour?: number, minute?: number, second?: number, millisecond?: number, tzoffset?: number };
 

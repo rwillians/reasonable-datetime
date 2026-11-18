@@ -1,6 +1,6 @@
-import { Duration } from './duration';
-import { NativeDate } from './native';
-import { assertInteger, DAY, compareNumbers, daysInMonth, fromEpoch, maxOf, minOf, pad, sortAll, toEpoch } from './utils';
+import { Duration } from './duration.js';
+import { NativeDate } from './native.js';
+import { assertInteger, DAY, compareNumbers, daysInMonth, fromEpoch, maxOf, minOf, pad, sortAll, toEpoch } from './utils.js';
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 

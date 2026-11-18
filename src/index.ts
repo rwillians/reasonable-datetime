@@ -1,4 +1,4 @@
-export { Date } from './date';
-export { DateTime } from './date-time';
-export { Duration } from './duration';
-export { Time } from './time';
+export { Date } from './date.js';
+export { DateTime } from './date-time.js';
+export { Duration } from './duration.js';
+export { Time } from './time.js';

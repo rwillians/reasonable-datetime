@@ -1,5 +1,5 @@
-import { Duration } from './duration';
-import { assertInteger, DAY, compareNumbers, fromEpoch, maxOf, minOf, pad, sortAll } from './utils';
+import { Duration } from './duration.js';
+import { assertInteger, DAY, compareNumbers, fromEpoch, maxOf, minOf, pad, sortAll } from './utils.js';
 
 const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/;
 

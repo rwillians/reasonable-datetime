@@ -1,4 +1,4 @@
-import { NativeDate } from './native';
+import { NativeDate } from './native.js';
 
 export type Order = 'lt' | 'eq' | 'gt';
 
