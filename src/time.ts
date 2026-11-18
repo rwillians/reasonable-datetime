@@ -46,6 +46,7 @@ export class Time {
     this.millisecond = millisecond;
   }
 
+  static is(value: unknown): value is Time { return value instanceof Time }
   static parse(iso: string): Time { return new Time(parseISO(iso)) }
 
   static sort(values: Time[]): Time[] { return sortAll(values) }

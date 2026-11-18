@@ -30,6 +30,7 @@ export class Duration {
     this.milliseconds = total % 1_000 + 0;
   }
 
+  static is(value: unknown): value is Duration { return value instanceof Duration }
   static days(n: number): Duration { return new Duration({ days: n }) }
   static hours(n: number): Duration { return new Duration({ hours: n }) }
   static minutes(n: number): Duration { return new Duration({ minutes: n }) }

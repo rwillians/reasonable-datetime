@@ -77,6 +77,8 @@ export class DateTime {
     this.epoch = toEpoch(year, month, day, hour, minute, second, millisecond) - tzoffset * 60_000;
   }
 
+  static is(value: unknown): value is DateTime { return value instanceof DateTime }
+
   // an epoch is read in UTC
   static parse(value: string | number): DateTime {
     if (typeof value === 'string') return new DateTime(parseISO(value));

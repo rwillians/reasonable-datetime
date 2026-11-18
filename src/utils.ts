@@ -2,7 +2,7 @@ import { NativeDate } from './native.js';
 
 export type Order = 'lt' | 'eq' | 'gt';
 
-type Comparable<T> = { compare(other: T): Order };
+export type Comparable<T> = { compare(other: T): Order };
 
 export const DAY = 86_400_000; // in milliseconds
 

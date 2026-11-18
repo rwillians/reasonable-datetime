@@ -41,6 +41,7 @@ export class Date {
     this.day = day;
   }
 
+  static is(value: unknown): value is Date { return value instanceof Date }
   static parse(iso: string): Date { return new Date(parseISO(iso)) }
 
   static todayUTC(): Date {
