@@ -1,5 +1,6 @@
 {
   "name": "reasonable-datetime",
+  "version": "0.1.0",
   "description": "Immutable distinct Date, Time and DateTime objects.",
   "author": "Rafael Willians <me@rwillians.com>",
   "keywords": ["date", "time", "datetime"],
