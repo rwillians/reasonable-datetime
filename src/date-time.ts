@@ -131,6 +131,9 @@ export class DateTime {
     });
   }
 
+  // the same instant, at offset 0
+  utc(): DateTime { return at(this.epoch, 0) }
+
   date(): Date { return new Date({ year: this.year, month: this.month, day: this.day }) }
   time(): Time { return new Time({ hour: this.hour, minute: this.minute, second: this.second, millisecond: this.millisecond }) }
   toNativeDate(): InstanceType<typeof NativeDate> { return new NativeDate(this.epoch) }

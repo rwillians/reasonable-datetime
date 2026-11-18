@@ -151,6 +151,15 @@ describe('conversion', () => {
     expect(dt.toNativeDate()).toBeInstanceOf(globalThis.Date);
     expect(dt.toNativeDate().toISOString()).toBe('2024-03-01T02:30:00.000Z');
   });
+
+  it('converts to UTC, keeping the instant', () => {
+    const utc = dt.utc();
+
+    expect(utc.toISOString()).toBe('2024-03-01T02:30:00.000Z');
+    expect(utc.tzoffset).toBe(0);
+    expect(utc.epoch).toBe(dt.epoch);
+    expect(utc.compare(dt)).toBe('eq');
+  });
 });
 
 describe('serialization', () => {

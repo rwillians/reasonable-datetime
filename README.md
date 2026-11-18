@@ -193,6 +193,7 @@ one is ambiguous, so `r.DateTime.parse('2024-02-29T13:45')` throws a
 | `compare(other)`                          | `'lt' \| 'eq' \| 'gt'` | compares instants, regardless of offset                           |
 | `beginningOf('year' \| 'month' \| 'day')` | `DateTime`             | the first millisecond of the unit, at this offset                 |
 | `endOf('year' \| 'month' \| 'day')`       | `DateTime`             | the last millisecond of the unit (`23:59:59.999`), at this offset |
+| `utc()`                                   | `DateTime`             | the same instant at offset `0`, with the fields adjusted          |
 | `date()`                                  | `Date`                 | the date at this offset                                           |
 | `time()`                                  | `Time`                 | the time at this offset                                           |
 | `toNativeDate()`                          | native `Date`          | the same instant as a native `Date`                               |
@@ -215,6 +216,7 @@ daylight saving time to account for:
 const night = r.DateTime.parse('2024-02-29T23:30-03:00');
 
 night.date().toISOString();         // => '2024-02-29'
+night.utc().toISOString();          // => '2024-03-01T02:30:00.000Z'
 night.toNativeDate().toISOString(); // => '2024-03-01T02:30:00.000Z'
 ```
 
