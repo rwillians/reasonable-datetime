@@ -29,5 +29,5 @@ jobs:
         run: bun install
       - name: build
         run: bun run build
-      - name: stage on npm
-        run: npm stage publish
+      - name: publish to npm
+        run: npm publish
