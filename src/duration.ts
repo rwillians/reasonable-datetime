@@ -1,19 +1,28 @@
+import { compareNumbers, maxOf, minOf, pad, sortAll } from './utils';
+
 export class Duration {
   public readonly days: number;
   public readonly hours: number;
   public readonly minutes: number;
   public readonly seconds: number;
   public readonly milliseconds: number;
-  readonly #total: number; // in milliseconds
+  public readonly '~total': number; // in milliseconds
 
   constructor(components: { days?: number, hours?: number, minutes?: number, seconds?: number, milliseconds?: number }) {
-    const total = (components.days ?? 0) * 86_400_000
+    // rounded so fractional inputs (e.g. `{ hours: 1 / 3 }`) don't leave float residue
+    const total = Math.round(
+      (components.days ?? 0) * 86_400_000
       + (components.hours ?? 0) * 3_600_000
       + (components.minutes ?? 0) * 60_000
       + (components.seconds ?? 0) * 1_000
-      + (components.milliseconds ?? 0);
+      + (components.milliseconds ?? 0)
+    );
 
-    this.#total = total;
+    if (!Number.isSafeInteger(total)) {
+      throw new RangeError(`invalid duration ${JSON.stringify(components)}`);
+    }
+
+    this['~total'] = total;
     this.days = Math.trunc(total / 86_400_000) + 0;
     this.hours = Math.trunc(total / 3_600_000) % 24 + 0;
     this.minutes = Math.trunc(total / 60_000) % 60 + 0;
@@ -21,28 +30,50 @@ export class Duration {
     this.milliseconds = total % 1_000 + 0;
   }
 
-  static days(n: number): Duration {}
-  static hours(n: number): Duration {}
-  static minutes(n: number): Duration {}
-  static seconds(n: number): Duration {}
-  static milliseconds(n: number): Duration {}
+  static days(n: number): Duration { return new Duration({ days: n }) }
+  static hours(n: number): Duration { return new Duration({ hours: n }) }
+  static minutes(n: number): Duration { return new Duration({ minutes: n }) }
+  static seconds(n: number): Duration { return new Duration({ seconds: n }) }
+  static milliseconds(n: number): Duration { return new Duration({ milliseconds: n }) }
 
-  static sort(values: Duration[]): Duration[] { }
-  static min(values: Duration[]): Duration { }
-  static max(values: Duration[]): Duration { }
+  static sort(values: Duration[]): Duration[] { return sortAll(values) }
+  static min(values: Duration[]): Duration { return minOf(values) }
+  static max(values: Duration[]): Duration { return maxOf(values) }
 
-  add(duration: Duration): Duration { }
-  sub(duration: Duration): Duration { }
-  diff(other: Duration): Duration { }
+  add(duration: Duration): Duration {
+    return new Duration({ milliseconds: this['~total'] + duration['~total'] });
+  }
+
+  sub(duration: Duration): Duration {
+    return new Duration({ milliseconds: this['~total'] - duration['~total'] });
+  }
+
+  diff(other: Duration): Duration {
+    return new Duration({ milliseconds: other['~total'] - this['~total'] });
+  }
+
   compare(other: Duration): 'lt' | 'eq' | 'gt' {
-    if (this.#total < other.#total) return 'lt';
-    if (this.#total > other.#total) return 'gt';
-    return 'eq';
+    return compareNumbers(this['~total'], other['~total']);
   }
 
   toISOString(): string {
-    //
+    if (this['~total'] === 0) return 'PT0S';
+
+    const days = Math.abs(this.days);
+    const hours = Math.abs(this.hours);
+    const minutes = Math.abs(this.minutes);
+    const seconds = Math.abs(this.seconds);
+    const milliseconds = Math.abs(this.milliseconds);
+
+    const fraction = milliseconds ? `.${pad(milliseconds, 3).replace(/0{1,}$/, '')}` : '';
+    const time = (hours ? `${hours}H` : '')
+      + (minutes ? `${minutes}M` : '')
+      + (seconds || milliseconds ? `${seconds}${fraction}S` : '');
+
+    return `${this['~total'] < 0 ? '-' : ''}P${days ? `${days}D` : ''}${time ? `T${time}` : ''}`;
   }
 
-  [Symbol.toString]() { return this.toISOString() }
+  toJSON(): string { return this.toISOString() }
+  toString(): string { return this.toISOString() }
 }
+

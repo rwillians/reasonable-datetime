@@ -1,3 +1,31 @@
+import { Duration } from './duration';
+import { NativeDate } from './native';
+import { assertInteger, DAY, compareNumbers, daysInMonth, fromEpoch, maxOf, minOf, pad, sortAll, toEpoch } from './utils';
+
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+const parse = (iso: string) => {
+  const match = ISO_DATE.exec(iso);
+
+  if (!match) throw new RangeError(`invalid ISO date \`${iso}\``);
+
+  const [, year, month, day] = match;
+
+  return { year: Number(year), month: Number(month), day: Number(day) };
+};
+
+const epochOf = (date: Date): number => toEpoch(date.year, date.month, date.day);
+
+const shift = (date: Date, milliseconds: number): Date => {
+  if (milliseconds % DAY !== 0) {
+    throw new RangeError('a date can only be shifted by whole days');
+  }
+
+  const { year, month, day } = fromEpoch(epochOf(date) + milliseconds);
+
+  return new Date({ year, month, day });
+};
+
 export class Date {
   public readonly year: number;
   public readonly month: number; // 1..12
@@ -5,22 +33,53 @@ export class Date {
 
   constructor(iso: string)
   constructor(components: { year: number, month: number, day: number })
+  constructor(value: string | { year: number, month: number, day: number }) {
+    const { year, month, day } = typeof value === 'string' ? parse(value) : value;
 
-  static today(): Date { }
-  static sort(values: Date[]): Date[] { }
-  static min(values: Date[]): Date { }
-  static max(values: Date[]): Date { }
+    assertInteger('year', year, 0, 9999);
+    assertInteger('month', month, 1, 12);
+    assertInteger('day', day, 1, daysInMonth(year, month));
 
-  add(duration: Duration): Date { }
-  sub(duration: Duration): Date { }
-  diff(other: Date): Duration { }
-  compare(other: Date): 'lt' | 'eq' | 'gt' { }
-  beginningOf(unit: 'year' | 'month'): Date { }
-  endOf(unit: 'year' | 'month'): Date { }
-
-  toISOString(): string {
-    //
+    this.year = year;
+    this.month = month;
+    this.day = day;
   }
 
-  [Symbol.toString]() { return this.toISOString() }
+  static todayUTC(): Date {
+    const { year, month, day } = fromEpoch(NativeDate.now());
+
+    return new Date({ year, month, day });
+  }
+
+  static sort(values: Date[]): Date[] { return sortAll(values) }
+  static min(values: Date[]): Date { return minOf(values) }
+  static max(values: Date[]): Date { return maxOf(values) }
+
+  add(duration: Duration): Date { return shift(this, duration['~total']) }
+  sub(duration: Duration): Date { return shift(this, -duration['~total']) }
+
+  diff(other: Date): Duration {
+    return new Duration({ milliseconds: epochOf(other) - epochOf(this) });
+  }
+
+  compare(other: Date): 'lt' | 'eq' | 'gt' {
+    return compareNumbers(epochOf(this), epochOf(other));
+  }
+
+  beginningOf(unit: 'year' | 'month'): Date {
+    return new Date({ year: this.year, month: unit === 'year' ? 1 : this.month, day: 1 });
+  }
+
+  endOf(unit: 'year' | 'month'): Date {
+    const month = unit === 'year' ? 12 : this.month;
+
+    return new Date({ year: this.year, month, day: daysInMonth(this.year, month) });
+  }
+
+  toISOString(): string {
+    return `${pad(this.year, 4)}-${pad(this.month)}-${pad(this.day)}`;
+  }
+
+  toJSON(): string { return this.toISOString() }
+  toString(): string { return this.toISOString() }
 };
