@@ -3,10 +3,13 @@
   "description": "Immutable distinct Date, Time and DateTime objects.",
   "author": "Rafael Willians <me@rwillians.com>",
   "keywords": ["date", "time", "datetime"],
+  "publishConfig": {
+    "access": "public"
+  },
   "files": ["LICENSE", "dist/*"],
   "repository": {
     "type": "git",
-    "url": "git://github.com/rwillians/exto.git"
+    "url": "git://github.com/rwillians/reasonable-datetime.git"
   },
   "type": "module",
   "module": "dist/esm/index.js",
@@ -27,9 +30,9 @@
     "typecheck": "bun check"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.4.4"
   },
   "peerDependencies": {
-    "typescript": "^7.0.2"
+    "typescript": ">=5.1.6"
   }
 }
