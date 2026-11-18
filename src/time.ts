@@ -3,7 +3,7 @@ import { assertInteger, DAY, compareNumbers, fromEpoch, maxOf, minOf, pad, sortA
 
 const ISO_TIME = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/;
 
-const parse = (iso: string) => {
+const parseISO = (iso: string) => {
   const match = ISO_TIME.exec(iso);
 
   if (!match) throw new RangeError(`invalid ISO time \`${iso}\``);
@@ -34,11 +34,7 @@ export class Time {
   public readonly second: number; // 0..59
   public readonly millisecond: number; // 0..999
 
-  constructor(iso: string)
-  constructor(components: { hour: number, minute: number, second?: number, millisecond?: number })
-  constructor(value: string | { hour: number, minute: number, second?: number, millisecond?: number }) {
-    const { hour, minute, second = 0, millisecond = 0 } = typeof value === 'string' ? parse(value) : value;
-
+  constructor({ hour, minute, second = 0, millisecond = 0 }: { hour: number, minute: number, second?: number, millisecond?: number }) {
     assertInteger('hour', hour, 0, 23);
     assertInteger('minute', minute, 0, 59);
     assertInteger('second', second, 0, 59);
@@ -49,6 +45,8 @@ export class Time {
     this.second = second;
     this.millisecond = millisecond;
   }
+
+  static parse(iso: string): Time { return new Time(parseISO(iso)) }
 
   static sort(values: Time[]): Time[] { return sortAll(values) }
   static min(values: Time[]): Time { return minOf(values) }

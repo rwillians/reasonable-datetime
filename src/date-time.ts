@@ -30,14 +30,14 @@ const formatOffset = (tzoffset: number): string => {
 };
 
 // the date and time parts are validated by `Date` and `Time`
-const parse = (iso: string): Components => {
+const parseISO = (iso: string): Components => {
   const match = ISO_DATE_TIME.exec(iso);
 
   if (!match) throw new RangeError(`invalid ISO date-time \`${iso}\``);
 
   const [, date = '', time = '', offset = ''] = match;
 
-  return { ...new Date(date), ...new Time(time), tzoffset: parseOffset(offset) };
+  return { ...Date.parse(date), ...Time.parse(time), tzoffset: parseOffset(offset) };
 };
 
 const at = (epoch: number, tzoffset: number): DateTime =>
@@ -54,36 +54,17 @@ export class DateTime {
   public readonly tzoffset: number; // in minutes
   public readonly epoch: number; // in milliseconds since Unix epoch
 
-  constructor(iso: string)
-  constructor(epoch: number)
-  constructor(components: Components)
-  constructor(value: string | number | Components) {
-    if (typeof value === 'number') {
-      this.epoch = value;
-      this.tzoffset = 0;
-    } else {
-      const components = typeof value === 'string' ? parse(value) : value;
-      const date = new Date(components);
-      const time = new Time({
-        hour: components.hour ?? 0,
-        minute: components.minute ?? 0,
-        second: components.second,
-        millisecond: components.millisecond,
-      });
+  constructor(components: Components) {
+    const { year, month, day } = new Date(components);
+    const { hour, minute, second, millisecond } = new Time({
+      hour: components.hour ?? 0,
+      minute: components.minute ?? 0,
+      second: components.second,
+      millisecond: components.millisecond,
+    });
+    const tzoffset = components.tzoffset ?? 0;
 
-      this.tzoffset = components.tzoffset ?? 0;
-      assertInteger('tzoffset', this.tzoffset, -1439, 1439);
-
-      this.epoch = toEpoch(date.year, date.month, date.day, time.hour, time.minute, time.second, time.millisecond)
-        - this.tzoffset * 60_000;
-    }
-
-    // the range supported by the native `Date`
-    assertInteger('epoch', this.epoch, -8.64e15, 8.64e15);
-
-    const { year, month, day, hour, minute, second, millisecond } = fromEpoch(this.epoch + this.tzoffset * 60_000);
-
-    assertInteger('year', year, 0, 9999);
+    assertInteger('tzoffset', tzoffset, -1439, 1439);
 
     this.year = year;
     this.month = month;
@@ -92,9 +73,21 @@ export class DateTime {
     this.minute = minute;
     this.second = second;
     this.millisecond = millisecond;
+    this.tzoffset = tzoffset;
+    this.epoch = toEpoch(year, month, day, hour, minute, second, millisecond) - tzoffset * 60_000;
   }
 
-  static nowUTC(): DateTime { return new DateTime(NativeDate.now()) }
+  // an epoch is read in UTC
+  static parse(value: string | number): DateTime {
+    if (typeof value === 'string') return new DateTime(parseISO(value));
+
+    // the range supported by the native `Date`
+    assertInteger('epoch', value, -8.64e15, 8.64e15);
+
+    return at(value, 0);
+  }
+
+  static nowUTC(): DateTime { return at(NativeDate.now(), 0) }
   static sort(values: DateTime[]): DateTime[] { return sortAll(values) }
   static min(values: DateTime[]): DateTime { return minOf(values) }
   static max(values: DateTime[]): DateTime { return maxOf(values) }

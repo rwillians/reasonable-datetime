@@ -1,20 +1,20 @@
 import { describe, expect, it } from 'bun:test';
 import { Duration, Time } from '../src';
 
-describe('new Time(iso)', () => {
+describe('Time.parse(iso)', () => {
   it('parses an ISO time', () => {
-    expect({ ...new Time('13:45') }).toEqual({ hour: 13, minute: 45, second: 0, millisecond: 0 });
-    expect({ ...new Time('13:45:30') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 0 });
-    expect({ ...new Time('13:45:30.5') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 500 });
-    expect({ ...new Time('13:45:30.123') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 123 });
+    expect({ ...Time.parse('13:45') }).toEqual({ hour: 13, minute: 45, second: 0, millisecond: 0 });
+    expect({ ...Time.parse('13:45:30') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 0 });
+    expect({ ...Time.parse('13:45:30.5') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 500 });
+    expect({ ...Time.parse('13:45:30.123') }).toEqual({ hour: 13, minute: 45, second: 30, millisecond: 123 });
   });
 
   it('throws on malformed or invalid times', () => {
-    expect(() => new Time('1:45')).toThrow(RangeError);
-    expect(() => new Time('13:45:30.1234')).toThrow(RangeError);
-    expect(() => new Time('24:00')).toThrow(RangeError);
-    expect(() => new Time('13:60')).toThrow(RangeError);
-    expect(() => new Time('13:45Z')).toThrow(RangeError);
+    expect(() => Time.parse('1:45')).toThrow(RangeError);
+    expect(() => Time.parse('13:45:30.1234')).toThrow(RangeError);
+    expect(() => Time.parse('24:00')).toThrow(RangeError);
+    expect(() => Time.parse('13:60')).toThrow(RangeError);
+    expect(() => Time.parse('13:45Z')).toThrow(RangeError);
   });
 });
 
@@ -31,19 +31,19 @@ describe('new Time(components)', () => {
 
 describe('arithmetic', () => {
   it('adds and subtracts', () => {
-    expect(new Time('10:00').add(Duration.minutes(90)).toISOString()).toBe('11:30:00.000');
-    expect(new Time('10:00').sub(Duration.seconds(1)).toISOString()).toBe('09:59:59.000');
+    expect(Time.parse('10:00').add(Duration.minutes(90)).toISOString()).toBe('11:30:00.000');
+    expect(Time.parse('10:00').sub(Duration.seconds(1)).toISOString()).toBe('09:59:59.000');
   });
 
   it('wraps around midnight', () => {
-    expect(new Time('23:00').add(Duration.hours(2)).toISOString()).toBe('01:00:00.000');
-    expect(new Time('01:00').sub(Duration.hours(2)).toISOString()).toBe('23:00:00.000');
-    expect(new Time('10:00').add(Duration.days(3)).toISOString()).toBe('10:00:00.000');
+    expect(Time.parse('23:00').add(Duration.hours(2)).toISOString()).toBe('01:00:00.000');
+    expect(Time.parse('01:00').sub(Duration.hours(2)).toISOString()).toBe('23:00:00.000');
+    expect(Time.parse('10:00').add(Duration.days(3)).toISOString()).toBe('10:00:00.000');
   });
 
   it('diff is `other - this`, so `a.add(a.diff(b))` is `b`', () => {
-    const a = new Time('10:30');
-    const b = new Time('12:00');
+    const a = Time.parse('10:30');
+    const b = Time.parse('12:00');
 
     expect(a.diff(b).toISOString()).toBe('PT1H30M');
     expect(b.diff(a).toISOString()).toBe('-PT1H30M');
@@ -54,13 +54,13 @@ describe('arithmetic', () => {
 
 describe('comparison', () => {
   it('compares times', () => {
-    expect(new Time('10:00').compare(new Time('10:00:00.001'))).toBe('lt');
-    expect(new Time('10:00').compare(new Time('10:00:00'))).toBe('eq');
-    expect(new Time('10:01').compare(new Time('10:00'))).toBe('gt');
+    expect(Time.parse('10:00').compare(Time.parse('10:00:00.001'))).toBe('lt');
+    expect(Time.parse('10:00').compare(Time.parse('10:00:00'))).toBe('eq');
+    expect(Time.parse('10:01').compare(Time.parse('10:00'))).toBe('gt');
   });
 
   it('sorts, min and max', () => {
-    const values = [new Time('12:00'), new Time('08:00'), new Time('10:00')];
+    const values = [Time.parse('12:00'), Time.parse('08:00'), Time.parse('10:00')];
 
     expect(Time.sort(values).map(String)).toEqual(['08:00:00.000', '10:00:00.000', '12:00:00.000']);
     expect(Time.min(values).toString()).toBe('08:00:00.000');
@@ -70,7 +70,7 @@ describe('comparison', () => {
 
 describe('serialization', () => {
   it('renders as a string', () => {
-    expect(JSON.stringify({ t: new Time('13:45') })).toBe('{"t":"13:45:00.000"}');
-    expect(`${new Time('13:45')}`).toBe('13:45:00.000');
+    expect(JSON.stringify({ t: Time.parse('13:45') })).toBe('{"t":"13:45:00.000"}');
+    expect(`${Time.parse('13:45')}`).toBe('13:45:00.000');
   });
 });

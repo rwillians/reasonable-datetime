@@ -4,7 +4,7 @@ import { assertInteger, DAY, compareNumbers, daysInMonth, fromEpoch, maxOf, minO
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-const parse = (iso: string) => {
+const parseISO = (iso: string) => {
   const match = ISO_DATE.exec(iso);
 
   if (!match) throw new RangeError(`invalid ISO date \`${iso}\``);
@@ -31,11 +31,7 @@ export class Date {
   public readonly month: number; // 1..12
   public readonly day: number; // 1..31
 
-  constructor(iso: string)
-  constructor(components: { year: number, month: number, day: number })
-  constructor(value: string | { year: number, month: number, day: number }) {
-    const { year, month, day } = typeof value === 'string' ? parse(value) : value;
-
+  constructor({ year, month, day }: { year: number, month: number, day: number }) {
     assertInteger('year', year, 0, 9999);
     assertInteger('month', month, 1, 12);
     assertInteger('day', day, 1, daysInMonth(year, month));
@@ -44,6 +40,8 @@ export class Date {
     this.month = month;
     this.day = day;
   }
+
+  static parse(iso: string): Date { return new Date(parseISO(iso)) }
 
   static todayUTC(): Date {
     const { year, month, day } = fromEpoch(NativeDate.now());
